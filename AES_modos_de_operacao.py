@@ -22,12 +22,14 @@ os.makedirs("cifras", exist_ok=True)
 
 import math
 
+# Função para calcular a entropia de Shannon
+# A entropia de Shannon é uma medida da incerteza ou aleatoriedade de um conjunto de dados.
 def shannon_entropy(data: bytes):
     freq = {b: data.count(b) / len(data) for b in set(data)}
     entropy = -sum(p * math.log2(p) for p in freq.values())
     return entropy
 
-# Função para cifrar, medir tempo e salvar em base64
+# Função para cifrar, medir tempo, entropia e salvar em base64
 def encrypt_and_save(mode_name, cipher):
     start_time = time.perf_counter()
     ciphertext = cipher.encrypt(data)
