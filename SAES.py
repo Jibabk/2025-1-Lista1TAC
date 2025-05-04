@@ -34,16 +34,15 @@ GF16_MULTIPLICATION = [
 ]
 
 
-def text_to_blocks(text):
+def text_to_block(text):
     binary = ''.join(f'{ord(c):08b}' for c in text)
-    blocks = [binary[i:i+16] for i in range(0, len(binary), 16)]
-    if len(blocks[-1]) < 16:
-        blocks[-1] = blocks[-1].ljust(16, '0')  # Preenche com zeros à direita se necessário
-    return [
-        [[int(block[0:4], 2), int(block[4:8], 2)],
+    block = binary[0:0+16]
+    if len(block) < 16:
+        block = block.ljust(16, '0')  # Preenche com zeros à direita se necessário
+    return [[int(block[0:4], 2), int(block[4:8], 2)],
          [int(block[8:12], 2), int(block[12:16], 2)]]
-        for block in blocks
-    ]
+        
+    
 
 def block_to_string(block):
     return ''.join(f'{n:04b}' for row in block for n in row)
@@ -166,29 +165,42 @@ def encrypt_block(block, round_keys):
 
 def encrypt_saes(text, key):
     key_schedule = key_expansion(key)
-    blocks = text_to_blocks(text)
+    block = text_to_block(text)
     encrypted = []
-    test = []
-    for block in blocks:
-        test.append(block_to_string(block))
     print("Chave em nibbles:", key_schedule)
-    print("Texto em binário:", test)
-    print("Texto em Blocos", blocks)
+    print("Texto em binário:", block_to_string(block))
+    print("Texto em Bloco", block)
 
-    for block in blocks:
-        enc_block = encrypt_block(block, key_schedule)
-        encrypted.append(block_to_string(enc_block))
+    enc_block = encrypt_block(block, key_schedule)
+    encrypted.append(block_to_string(enc_block))
 
-    encrypted_bin = ''.join(encrypted)
+    encrypted_bin = ''.join(block_to_string(enc_block))
     encrypted_hex = hex(int(encrypted_bin, 2))[2:]
     encrypted_b64 = base64.b64encode(int(encrypted_bin, 2).to_bytes((len(encrypted_bin) + 7) // 8, 'big')).decode()
 
     return encrypted_hex, encrypted_b64, encrypted_bin
 ## ----------------------------------- ##
 
+while True:
+    try:
+        message = input("Digite a mensagem: ")
+        binary = ''.join(f'{ord(c):08b}' for c in message)
 
-message = input("Digite a mensagem: ")
-chave = int(input("Digite a chave: "),2) # Exemplo: 0b1010011100111011
+        if len(binary) > 16:
+            print("A mensagem deve ter no máximo 16 bits.")
+            continue
+        break
+    except ValueError:
+        print("Entrada inválida. Tente novamente.")
+while True:
+    try:
+        chave = int(input("Digite a chave de 16 bits em binário: "),2) # Exemplo: 0b1010011100111011
+        if chave.bit_length() > 16:
+            print("A chave deve ter no máximo 16 bits.")
+            continue
+        break
+    except ValueError:
+        print("Entrada inválida. Tente novamente.")
 
 cypertext = encrypt_saes(message, chave)
 print("Texto cifrado em hexadecimal:", cypertext[0])

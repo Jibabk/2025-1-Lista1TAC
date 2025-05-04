@@ -164,7 +164,7 @@ def encrypt_block(block, round_keys):
 
     return state
 
-def encrypt_saes(text, key):
+def encrypt_saes_ecb(text, key):
     key_schedule = key_expansion(key)
     blocks = text_to_blocks(text)
     encrypted = []
@@ -184,43 +184,12 @@ def encrypt_saes(text, key):
     encrypted_b64 = base64.b64encode(int(encrypted_bin, 2).to_bytes((len(encrypted_bin) + 7) // 8, 'big')).decode()
 
     return encrypted_hex, encrypted_b64, encrypted_bin
-## ----------------------------------- ##
-
-def encrypt_saes_ecb(text, key):
-    key_schedule = key_expansion(key)
-    blocks = text_to_blocks(text)
-    encrypted_blocks = []
-    block_binaries = []
-
-    print("Blocos de entrada (texto):")
-    for i, block in enumerate(blocks):
-        bin_str = block_to_string(block)
-        print(f"Bloco {i}: {bin_str}")
-    
-    for block in blocks:
-        enc_block = encrypt_block(block, key_schedule)
-        bin_str = block_to_string(enc_block)
-        block_binaries.append(bin_str)
-        encrypted_blocks.append(int(bin_str, 2))
-
-    # Junta todos os blocos cifrados para formar o binário final
-    encrypted_bin = ''.join(block_binaries)
-    encrypted_bytes = int(encrypted_bin, 2).to_bytes((len(encrypted_bin) + 7) // 8, 'big')
-    encrypted_b64 = base64.b64encode(encrypted_bytes).decode()
-
-    print("\nBlocos cifrados (modo ECB):")
-    for i, bin_str in enumerate(block_binaries):
-        print(f"Bloco {i}: {bin_str}")
-
-    print("\nObservação: Blocos de texto idênticos geram blocos cifrados idênticos em ECB.\n")
-
-    return encrypted_b64
 
 
 message = input("Digite a mensagem: ")
 chave = int(input("Digite a chave: "),2) # Exemplo: 0b1010011100111011
 
-cypertext = encrypt_saes(message, chave)
+cypertext = encrypt_saes_ecb(message, chave)
 print("Texto cifrado em hexadecimal:", cypertext[0])
 print("Texto cifrado em base64:", cypertext[1])
 print("Texto cifrado em binário:", cypertext[2])
